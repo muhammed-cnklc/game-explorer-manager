@@ -7,22 +7,31 @@ const path = require("path");
 const db = require("./database/db");
 
 const authRoutes = require("./routes/authRoutes");
+const gameRoutes = require("./routes/gameRoutes");
+const favoriteRoutes = require("./routes/favoriteRoutes");
+const playedRoutes = require("./routes/playedRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+
 const { verifyToken } = require("./middleware/authMiddleware");
 
 const app = express();
 
-// Parse JSON request bodies
+// Parse JSON requests
 app.use(express.json());
 
-// Authentication routes
+// API routes
 app.use("/api/auth", authRoutes);
+app.use("/api/games", gameRoutes);
+app.use("/api/favorites", favoriteRoutes);
+app.use("/api/played", playedRoutes);
+app.use("/api/admin", adminRoutes);
 
-// Home endpoint
+// Home route
 app.get("/", (req, res) => {
     res.send("API Running");
 });
 
-// Health check endpoint
+// Health check
 app.get("/api/health", (req, res) => {
     res.json({
         status: "ok",
@@ -30,7 +39,7 @@ app.get("/api/health", (req, res) => {
     });
 });
 
-// Protected test endpoint
+// Protected test route
 app.get("/api/profile", verifyToken, (req, res) => {
     res.json({
         message: "Protected route accessed",
@@ -38,13 +47,12 @@ app.get("/api/profile", verifyToken, (req, res) => {
     });
 });
 
-// Load database schema
+// Load and execute database schema
 const schema = fs.readFileSync(
     path.join(__dirname, "database", "schema.sql"),
     "utf8"
 );
 
-// Create tables if they do not exist
 db.exec(schema, (err) => {
     if (err) {
         console.error("Schema error:", err.message);
@@ -53,7 +61,7 @@ db.exec(schema, (err) => {
     }
 });
 
-// Start Express server
+// Start server
 app.listen(process.env.PORT, () => {
     console.log(`Server started on port ${process.env.PORT}`);
 });

@@ -1,24 +1,27 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+
 const db = require("../database/db");
 
-// Register new user
+// Register a new user
 exports.register = async (req, res) => {
+
     try {
+
         const { username, email, password } = req.body;
 
-        // Validate input
         if (!username || !email || !password) {
             return res.status(400).json({
                 message: "All fields are required"
             });
         }
 
-        // Hash password before saving
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword =
+            await bcrypt.hash(password, 10);
 
         const sql = `
-            INSERT INTO users (username, email, password_hash)
+            INSERT INTO users
+            (username, email, password_hash)
             VALUES (?, ?, ?)
         `;
 
@@ -26,6 +29,7 @@ exports.register = async (req, res) => {
             sql,
             [username, email, hashedPassword],
             function (err) {
+
                 if (err) {
                     return res.status(500).json({
                         message: err.message
@@ -36,18 +40,23 @@ exports.register = async (req, res) => {
                     message: "User registered successfully",
                     userId: this.lastID
                 });
+
             }
         );
 
     } catch (error) {
+
         res.status(500).json({
             message: error.message
         });
+
     }
+
 };
 
-// Login existing user
+// Login user
 exports.login = (req, res) => {
+
     const { email, password } = req.body;
 
     const sql = `
@@ -70,11 +79,11 @@ exports.login = (req, res) => {
             });
         }
 
-        // Compare password with stored hash
-        const validPassword = await bcrypt.compare(
-            password,
-            user.password_hash
-        );
+        const validPassword =
+            await bcrypt.compare(
+                password,
+                user.password_hash
+            );
 
         if (!validPassword) {
             return res.status(401).json({
@@ -82,7 +91,6 @@ exports.login = (req, res) => {
             });
         }
 
-        // Generate JWT token
         const token = jwt.sign(
             {
                 id: user.id,
@@ -98,5 +106,7 @@ exports.login = (req, res) => {
             message: "Login successful",
             token
         });
+
     });
+
 };

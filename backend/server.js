@@ -1,5 +1,7 @@
 require("dotenv").config();
 
+const cors = require("cors");
+
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -18,6 +20,8 @@ const app = express();
 
 // Parse JSON requests
 app.use(express.json());
+
+app.use(cors());
 
 // API routes
 app.use("/api/auth", authRoutes);

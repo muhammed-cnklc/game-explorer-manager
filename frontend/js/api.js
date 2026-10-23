@@ -107,12 +107,64 @@ function displayGames(games) {
         const card = document.createElement("div");
 
         card.classList.add("card");
-        card.innerHTML =
-            `<h3>${game.external}</h3>
-            <p>Game ID: ${game.gameID}</p>
-            <button onclick="addFavorite('${game.gameID}')">Add to Favorites</button>
-            <button onclick="addPlayed('${game.gameID}')">Add to Played</button>
-            `;
+
+       const releaseDate =
+            game.released
+                ? new Date(
+                    game.released * 1000
+                ).toLocaleDateString(
+            "de-AT",
+            {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            }
+        )
+                : "Unknown";
+
+        const rating =
+            game.rating
+                ? game.rating.toFixed(1)
+                : "N/A";
+
+        const aggregatedRating =
+            game.aggregatedRating
+                ? game.aggregatedRating.toFixed(1)
+                : "N/A";
+
+        card.innerHTML = `
+            <h3>${game.name}</h3>
+
+            <img src="${game.cover}" alt="${game.name}">
+
+            <p>ID: ${game.id}</p>
+
+            <p>Rating: ${rating}</p>
+
+            <p>
+                Aggregated Rating:
+                ${aggregatedRating}
+            </p>
+
+            <p>Hypes: ${game.hypes}</p>
+
+            <p>
+                Release Date:
+                ${releaseDate}
+            </p>
+
+            <button
+                onclick="addFavorite('${game.id}')"
+            >
+                Add to Favorites
+            </button>
+
+            <button
+                onclick="addPlayed('${game.id}')"
+            >
+                Add to Played
+            </button>
+        `;
 
         results.appendChild(card);
     });
@@ -153,23 +205,51 @@ async function loadFavorites() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/favorites`,
+
+        const response = await fetch(
+            `${API_URL}/favorites`,
             {
-                headers: {"Authorization": `Bearer ${token}`}
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
             }
         );
+
         const favorites = await response.json();
 
-        displayFavorites(favorites);
+        const favoritesWithDetails = await Promise.all(
+
+            favorites.map(async (favorite) => {
+
+                const gameResponse = await fetch(
+                    `${API_URL}/games/${favorite.rawg_game_id}`
+                );
+
+                const game = await gameResponse.json();
+
+                return {
+                    ...favorite,
+                    game
+                };
+
+            })
+
+        );
+
+        displayFavorites(favoritesWithDetails);
 
     } catch (error) {
+
         console.error(error);
+
     }
+
 }
 
 function displayFavorites(favorites) {
 
-    const container = document.getElementById("favoritesContainer");
+    const container =
+        document.getElementById("favoritesContainer");
 
     if (!container) {
         
@@ -180,16 +260,53 @@ function displayFavorites(favorites) {
 
     favorites.forEach(favorite => {
 
-        const card = document.createElement("div");
+        const game = favorite.game;
+
+        const releaseDate =
+            game.released
+                ? new Date(
+                    game.released * 1000
+                ).toLocaleDateString(
+            "de-AT",
+            {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            }
+        )
+                : "Unknown";
+
+        const rating =
+            game.rating
+                ? game.rating.toFixed(1)
+                : "N/A";
+
+        const card =
+            document.createElement("div");
 
         card.classList.add("card");
-        card.innerHTML = 
-            `<h3>Game ID: ${favorite.rawg_game_id}</h3>
-            <button onclick="deleteFavorite(${favorite.id})">Remove</button>
-            `;
+
+        card.innerHTML = `
+            ${game.cover
+                ? `<img src="${game.cover}" alt="${game.name}">`
+                : ""
+            }
+
+            <h3>${game.name}</h3>
+
+            <p>Rating: ${rating}</p>
+
+            <p>Release Date: ${releaseDate}</p>
+
+            <button onclick="deleteFavorite(${favorite.id})">
+                Remove
+            </button>
+        `;
 
         container.appendChild(card);
+
     });
+
 }
 
 async function deleteFavorite(id) {
@@ -238,55 +355,153 @@ async function loadPlayedGames() {
 
     if (!token) {
         alert("Please login first");
-        
         return;
     }
 
     try {
-        const response = await fetch(`${API_URL}/played`,
+
+        const response = await fetch(
+            `${API_URL}/played`,
             {
-                headers: {"Authorization": `Bearer ${token}`}
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
             }
         );
+
         const playedGames = await response.json();
 
-        displayPlayedGames(playedGames);
+        const playedGamesWithDetails = await Promise.all(
+
+            playedGames.map(async (playedGame) => {
+
+                const gameResponse = await fetch(
+                    `${API_URL}/games/${playedGame.rawg_game_id}`
+                );
+
+                const game = await gameResponse.json();
+
+                return {
+                    ...playedGame,
+                    game
+                };
+
+            })
+
+        );
+
+        displayPlayedGames(
+            playedGamesWithDetails
+        );
 
     } catch (error) {
+
         console.error(error);
+
     }
+
 }
 
 function displayPlayedGames(playedGames) {
 
-    const container = document.getElementById("playedContainer");
+    const container =
+        document.getElementById("playedContainer");
 
     if (!container) {
-        
+
         return;
     }
 
     container.innerHTML = "";
 
-    playedGames.forEach(game => {
+    playedGames.forEach(playedGame => {
 
-        const card = document.createElement("div");
+        const game =
+            playedGame.game;
+
+        const releaseDate =
+            game.released
+                ? new Date(
+                    game.released * 1000
+                ).toLocaleDateString(
+            "de-AT",
+            {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            }
+        )
+                : "Unknown";
+
+        const rating =
+            game.rating
+                ? game.rating.toFixed(1)
+                : "N/A";
+
+        const card =
+            document.createElement("div");
 
         card.classList.add("card");
-        card.innerHTML = 
-            `<h3>Game ID: ${game.rawg_game_id}</h3>
-            <p>Status: ${game.status}</p>
-            <select onchange="updatePlayedGame(${game.id}, this.value)">
-                <option value="Playing" ${game.status === "Playing" ? "selected" : ""}>Playing</option>
-                <option value="Completed" ${game.status === "Completed" ? "selected" : ""}>Completed</option>
-                <option value="Dropped" ${game.status === "Dropped" ? "selected" : ""}>Dropped</option>
-                <option value="Wishlist" ${game.status === "Wishlist" ? "selected" : ""}>Wishlist</option>
+
+        card.innerHTML = `
+
+            ${game.cover
+                ? `<img src="${game.cover}" alt="${game.name}">`
+                : ""
+            }
+
+            <h3>${game.name}</h3>
+
+            <p>Rating: ${rating}</p>
+
+            <p>Release Date: ${releaseDate}</p>
+
+            <p>Status: ${playedGame.status}</p>
+
+            <select
+                onchange="updatePlayedGame(${playedGame.id}, this.value)"
+            >
+                <option
+                    value="Playing"
+                    ${playedGame.status === "Playing" ? "selected" : ""}
+                >
+                    Playing
+                </option>
+
+                <option
+                    value="Completed"
+                    ${playedGame.status === "Completed" ? "selected" : ""}
+                >
+                    Completed
+                </option>
+
+                <option
+                    value="Dropped"
+                    ${playedGame.status === "Dropped" ? "selected" : ""}
+                >
+                    Dropped
+                </option>
+
+                <option
+                    value="Wishlist"
+                    ${playedGame.status === "Wishlist" ? "selected" : ""}
+                >
+                    Wishlist
+                </option>
             </select>
-            <button onclick="deletePlayedGame(${game.id})">Remove</button>
-            `;
+
+            <button
+                onclick="deletePlayedGame(${playedGame.id})"
+            >
+                Remove
+            </button>
+
+        `;
 
         container.appendChild(card);
+
     });
+
 }
 
 async function updatePlayedGame(id,status) {
@@ -325,40 +540,123 @@ async function deletePlayedGame(id) {
 async function loadFeaturedGames() {
 
     try {
-        const response = await fetch(`${API_URL}/admin/featured`);
-        const featuredGames = await response.json();
 
-        displayFeaturedGames(featuredGames);
+        const response =
+            await fetch(
+                `${API_URL}/admin/featured`
+            );
+
+        const featuredGames =
+            await response.json();
+
+        const featuredGamesWithDetails =
+            await Promise.all(
+
+                featuredGames.map(
+                    async (featuredGame) => {
+
+                        const gameResponse =
+                            await fetch(
+                                `${API_URL}/games/${featuredGame.rawg_game_id}`
+                            );
+
+                        const game =
+                            await gameResponse.json();
+
+                        return {
+                            ...featuredGame,
+                            game
+                        };
+
+                    }
+                )
+
+            );
+
+        displayFeaturedGames(
+            featuredGamesWithDetails
+        );
 
     } catch (error) {
+
         console.error(error);
+
     }
+
 }
 
 function displayFeaturedGames(featuredGames) {
 
-    const container = document.getElementById("featuredContainer");
+    const container =
+        document.getElementById(
+            "featuredContainer"
+        );
 
     if (!container) {
-        
         return;
     }
 
     container.innerHTML = "";
 
-    featuredGames.forEach(game => {
+    featuredGames.forEach(featuredGame => {
 
-        const card = document.createElement("div");
+        const game =
+            featuredGame.game;
+
+        const releaseDate =
+            game.released
+                ? new Date(
+                    game.released * 1000
+                ).toLocaleDateString(
+                    "de-AT",
+                    {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric"
+                    }
+                )
+                : "Unknown";
+
+        const rating =
+            game.rating
+                ? game.rating.toFixed(1)
+                : "N/A";
+
+        const card =
+            document.createElement("div");
 
         card.classList.add("card");
-        card.innerHTML = 
-            `<h3>Game ID: ${game.rawg_game_id}</h3>
-            <button onclick="deleteFeaturedGame(${game.id})">Remove</button>
-            `;
+
+        card.innerHTML = `
+
+            ${game.cover
+                ? `<img src="${game.cover}" alt="${game.name}">`
+                : ""
+            }
+
+            <h3>${game.name}</h3>
+
+            <p>Rating: ${rating}</p>
+
+            <p>
+                Release Date:
+                ${releaseDate}
+            </p>
+
+            <button
+                onclick="deleteFeaturedGame(${featuredGame.id})"
+            >
+                Remove
+            </button>
+
+        `;
 
         container.appendChild(card);
+
     });
+
 }
+
 
 async function addFeaturedGame(event) {
 

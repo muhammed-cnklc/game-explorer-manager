@@ -23,13 +23,9 @@ async function getAccessToken() {
         );
 
     return response.data.access_token;
-
 }
 
-async function getCoverUrl(
-    coverId,
-    token
-) {
+async function getCoverUrl(coverId, token) {
 
     const response =
         await axios.post(
@@ -59,8 +55,7 @@ async function getCoverUrl(
         return null;
     }
 
-    const imageId =
-        response.data[0].image_id;
+    const imageId = response.data[0].image_id;
 
     return `https://images.igdb.com/igdb/image/upload/t_cover_big/${imageId}.jpg`;
 
@@ -68,8 +63,7 @@ async function getCoverUrl(
 
 exports.searchGames = async (query) => {
 
-    const token =
-        await getAccessToken();
+    const token = await getAccessToken();
 
     const response =
         await axios.post(
@@ -82,11 +76,10 @@ exports.searchGames = async (query) => {
                 name,
                 first_release_date,
                 rating,
-                aggregated_rating,
-                hypes,
+                total_rating_count,
                 cover,
                 updated_at;
-            limit 10;
+            limit 30;
             `,
 
             {
@@ -102,56 +95,35 @@ exports.searchGames = async (query) => {
 
     const games = await Promise.all(
 
-    response.data.map(async (game) => {
+        response.data.map(async (game) => {
 
-        const coverUrl =
-            game.cover
-                ? await getCoverUrl(
-                    game.cover,
-                    token
-                )
-                : null;
+            const coverUrl =
+                game.cover
+                    ? await getCoverUrl(
+                        game.cover,
+                        token
+                    )
+                    : null;
 
-        return {
+            return {
+                id: game.id,
+                name: game.name,
+                released: game.first_release_date || null,
+                rating: game.rating || null,
+                totalRatings: game.total_rating_count || 0,
+                hasCover: !!game.cover,
+                cover: coverUrl,
+                updated: game.updated_at || null
+            };
+        })
+    );
 
-            id: game.id,
-
-            name: game.name,
-
-            released:
-                game.first_release_date || null,
-
-            rating:
-                game.rating || 0,
-
-            aggregatedRating:
-                game.aggregated_rating || 0,
-
-            hypes:
-                game.hypes || 0,
-
-            hasCover:
-                !!game.cover,
-
-            cover:
-                coverUrl,
-
-            updated:
-                game.updated_at || null
-        };
-
-    })
-
-);
-
-return games;
-
+    return games;
 };
 
 exports.getGameDetails = async (gameId) => {
 
-    const token =
-        await getAccessToken();
+    const token = await getAccessToken();
 
     const response =
         await axios.post(
@@ -163,14 +135,12 @@ exports.getGameDetails = async (gameId) => {
                 name,
                 first_release_date,
                 rating,
-                aggregated_rating,
-                hypes,
+                total_rating_count,
                 cover,
                 updated_at;
             where
                 id = ${gameId};
             `,
-
             {
                 headers: {
                     "Client-ID":
@@ -186,8 +156,7 @@ exports.getGameDetails = async (gameId) => {
         return null;
     }
 
-    const game =
-        response.data[0];
+    const game = response.data[0];
 
     const coverUrl =
         game.cover
@@ -197,32 +166,14 @@ exports.getGameDetails = async (gameId) => {
             )
             : null;
 
-    return {
-
-        id: game.id,
-
-        name: game.name,
-
-        released:
-            game.first_release_date || null,
-
-        rating:
-            game.rating || 0,
-
-        aggregatedRating:
-            game.aggregated_rating || 0,
-
-        hypes:
-            game.hypes || 0,
-
-        hasCover:
-            !!game.cover,
-
-        cover:
-            coverUrl,
-
-        updated:
-            game.updated_at || null
+   return {
+    id: game.id,
+    name: game.name,
+    released: game.first_release_date || null,
+    rating: game.rating || null,
+    totalRatings: game.total_rating_count || 0,
+    hasCover: !!game.cover,
+    cover: coverUrl,
+    updated: game.updated_at || null
     };
-
 };

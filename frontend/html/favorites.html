@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorites</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+    <div class="navigation">
+        <a id="navHome" href="index.html">Home</a>
+        <a id="navFeatured" href="featured.html">Featured Games</a>
+        <a id="navFavorites" class="active" href="favorites.html">Favorites</a>
+        <a id="navPlayed" href="played.html">Played Games</a>
+        <a id="navAdmin" href="admin.html">Admin Panel</a>
+        <a id="navLogin" href="login.html">Login</a>
+        <a id="navRegister" href="register.html">Register</a>
+        <a id="navLogout" href="#" onclick="logoutUser()">Logout</a>
+
+        <span id="userInfo"></span>
+    </div>
+
+    <div class="container">
+
+        <h1>Favorite Games</h1>
+
+        <div id="favoritesContainer" class="games-grid"></div>
+
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/ui.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/games.js"></script>
+    <script src="../js/favorites.js"></script>
+    <script src="../js/played.js"></script>
+    <script src="../js/featured.js"></script>
+    <script src="../js/admin.js"></script>
+    <script src="../js/app.js"></script>
+    <script>requireLogin();</script>
+
+</body>
+
+</html>

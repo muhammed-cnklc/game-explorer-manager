@@ -22,7 +22,6 @@ exports.searchGames = async (req, res) => {
         res.status(500).json({
             message: error.message
         });
-
     }
 };
 
@@ -32,18 +31,14 @@ exports.getGameDetails = async (req, res) => {
     try {
 
         const gameId = req.params.id;
-
-        const game =
-            await APIService.getGameDetails(gameId);
+        const game = await APIService.getGameDetails(gameId);
 
         res.json(game);
-
+        
     } catch (error) {
 
         res.status(500).json({
             message: error.message
         });
-
     }
-
 };

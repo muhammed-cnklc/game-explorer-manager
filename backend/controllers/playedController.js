@@ -3,19 +3,19 @@ const db = require("../database/db");
 // Add a played game
 exports.addPlayedGame = (req, res) => {
 
-    const { rawg_game_id, status } = req.body;
+    const { game_id, status } = req.body;
     const userId = req.user.id;
-
-    const sql = `
-        INSERT INTO played_games
-        (user_id, rawg_game_id, status)
-        VALUES (?, ?, ?)
+    const checkSql = `
+        SELECT *
+        FROM played_games
+        WHERE user_id = ?
+        AND game_id = ?
     `;
 
-    db.run(
-        sql,
-        [userId, rawg_game_id, status],
-        function (err) {
+    db.get(
+        checkSql,
+        [userId, game_id],
+        (err, existingPlayedGame) => {
 
             if (err) {
                 return res.status(500).json({
@@ -23,21 +23,43 @@ exports.addPlayedGame = (req, res) => {
                 });
             }
 
-            res.status(201).json({
-                message: "Played game added",
-                playedId: this.lastID
-            });
+            if (existingPlayedGame) {
+                return res.status(400).json({
+                    message: "Already in played games"
+                });
+            }
 
+            const sql = `
+                INSERT INTO played_games
+                (user_id, game_id, status)
+                VALUES (?, ?, ?)
+            `;
+
+            db.run(
+                sql,
+                [userId, game_id, status],
+                function (err) {
+
+                    if (err) {
+                        return res.status(500).json({
+                            message: err.message
+                        });
+                    }
+
+                    res.status(201).json({
+                        message: "Played game added",
+                        playedId: this.lastID
+                    });
+                }
+            );
         }
     );
-
 };
 
 // Get all played games for the current user
 exports.getPlayedGames = (req, res) => {
 
     const userId = req.user.id;
-
     const sql = `
         SELECT *
         FROM played_games
@@ -68,7 +90,6 @@ exports.updatePlayedGame = (req, res) => {
     const playedId = req.params.id;
     const { status } = req.body;
     const userId = req.user.id;
-
     const sql = `
         UPDATE played_games
         SET status = ?
@@ -90,10 +111,8 @@ exports.updatePlayedGame = (req, res) => {
             res.json({
                 message: "Played game updated"
             });
-
         }
     );
-
 };
 
 // Remove a played game
@@ -101,7 +120,6 @@ exports.deletePlayedGame = (req, res) => {
 
     const playedId = req.params.id;
     const userId = req.user.id;
-
     const sql = `
         DELETE FROM played_games
         WHERE id = ?
@@ -122,8 +140,6 @@ exports.deletePlayedGame = (req, res) => {
             res.json({
                 message: "Played game deleted"
             });
-
         }
     );
-
 };

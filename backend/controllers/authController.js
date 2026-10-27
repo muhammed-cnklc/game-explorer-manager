@@ -1,6 +1,5 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
 const db = require("../database/db");
 
 // Register a new user
@@ -16,9 +15,7 @@ exports.register = async (req, res) => {
             });
         }
 
-        const hashedPassword =
-            await bcrypt.hash(password, 10);
-
+        const hashedPassword = await bcrypt.hash(password, 10);
         const sql = `
             INSERT INTO users
             (username, email, password_hash)
@@ -37,10 +34,9 @@ exports.register = async (req, res) => {
                 }
 
                 res.status(201).json({
-                    message: "User registered successfully",
+                    message: "User registered successfully. Redirecting to login...",
                     userId: this.lastID
                 });
-
             }
         );
 
@@ -49,16 +45,13 @@ exports.register = async (req, res) => {
         res.status(500).json({
             message: error.message
         });
-
     }
-
 };
 
 // Login user
 exports.login = (req, res) => {
 
     const { email, password } = req.body;
-
     const sql = `
         SELECT *
         FROM users
@@ -104,9 +97,12 @@ exports.login = (req, res) => {
 
         res.json({
             message: "Login successful",
-            token
+            token,
+            user: {
+                id: user.id,
+                username: user.username,
+                role: user.role
+            }
         });
-
     });
-
 };

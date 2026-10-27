@@ -13,6 +13,27 @@ const {
     isAdmin
 } = require("../middleware/roleMiddleware");
 
+router.get(
+    "/users",
+    verifyToken,
+    isAdmin,
+    adminController.getUsers
+);
+
+router.delete(
+    "/users/:id",
+    verifyToken,
+    isAdmin,
+    adminController.deleteUser
+);
+
+router.get(
+    "/statistics",
+    verifyToken,
+    isAdmin,
+    adminController.getStatistics
+);
+
 // Public featured list
 router.get(
     "/featured",
